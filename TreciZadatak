@@ -1,0 +1,321 @@
+#define _CRT_SECURE_NO_WARNINGS   // omogućuje korištenje scanf bez greške
+#include<stdio.h>    
+#include<string.h>  
+#include<stdlib.h>
+#define LINE 40     
+
+// struktura koja predstavlja jednu osobu
+typedef struct {
+    char name[LINE];   
+    char surname[LINE];  
+    int year;            
+} Person;
+
+// struktura koja predstavlja jedan čvor u povezanoj listi
+typedef struct Element {
+    Person person;       // podaci o osobi
+    struct Element* next; // pokazivač na sljedeći element u listi
+} Element;
+
+//2. zadatak
+Element* addPerson(Element* head, Person p) {
+    Element* new = malloc(sizeof(Element));
+    if (!new) return head;
+
+    new->person = p;
+    new->next = head;
+    return new;
+}
+//2.zadatak
+Element* addToBegg(Element* head) {
+    Element* new = malloc(sizeof(Element));
+    if (!new) return head;
+
+    printf("Ime: ");
+    scanf("%s", new->person.name);
+    printf("Prezime: ");
+    scanf("%s", new->person.surname);
+    printf("Godina rodenja: ");
+    scanf("%d", &new->person.year);
+
+    new->next = head;
+    return new;
+}
+//2. zadatak
+int printList(Element* head) {
+    int count = 0;
+    Element* p = head;
+
+    while (p != NULL) {
+        printf("%s %s (%d)\n", p->person.name, p->person.surname, p->person.year);
+        p = p->next;
+        count++;
+    }
+    return count;
+}
+//2. zadatak
+Element* addToEnd(Element* head) {
+    Element* new = malloc(sizeof(Element));
+    if (!new) return head;
+
+    printf("Ime: ");
+    scanf("%s", new->person.name);
+    printf("Prezime: ");
+    scanf("%s", new->person.surname);
+    printf("Godina rodenja: ");
+    scanf("%d", &new->person.year);
+
+    new->next = NULL;
+
+    if (head == NULL)
+        return new;
+
+    Element* p = head;
+    while (p->next != NULL)
+        p = p->next;
+
+    p->next = new;
+    return head;
+}
+//2. zadatak
+Element* findBySurname(Element* head, char* surname) {
+    Element* p = head;
+
+    while (p) {
+        if (!strcmp(p->person.surname, surname)) {
+            printf("Pronadena osoba: %s %s (%d)\n",
+                p->person.name, p->person.surname, p->person.year);
+            return p;
+        }
+        p = p->next;
+    }
+
+    printf("Osoba nije pronadena.\n");
+    return NULL;
+}
+//2. zadatak
+Element* deleteBySurname(Element* head, char* surname) {
+    if (!head) return NULL;
+
+    if (strcmp(head->person.surname, surname) == 0) {
+        Element* temp = head;
+        head = head->next;
+        free(temp);
+        return head;
+    }
+
+    Element* p = head;
+    while (p->next != NULL && strcmp(p->next->person.surname, surname) != 0)
+        p = p->next;
+
+    if (p->next != NULL) {
+        Element* temp = p->next;
+        p->next = temp->next;
+        free(temp);
+    }
+
+    return head;
+}
+
+
+//Dinamički dodaje novi element iza prezimena
+Element* insertAfter(Element* head, char* targetSurname) {
+    Element* p = head;
+
+    // Pronalazak elementa s traženim prezimenom
+    while (p != NULL && strcmp(p->person.surname, targetSurname) != 0) {
+        p = p->next;
+    }
+
+    if (p == NULL) {
+        printf("Osoba s prezimenom '%s' nije pronađena.\n", targetSurname);
+        return head;
+    }
+
+    // Alociranje novog čvora i unos podataka
+    Element* new = malloc(sizeof(Element));
+    if (!new) return head;
+
+    printf("Unesi podatke za novu osobu:\n");
+    printf("Ime: ");
+    scanf("%s", new->person.name);
+    printf("Prezime: ");
+    scanf("%s", new->person.surname);
+    printf("Godina rodenja: ");
+    scanf("%d", &new->person.year);
+
+    // Ubaci iza pronađenog elementa
+    new->next = p->next;
+    p->next = new;
+
+    return head;
+}
+
+//Dinamički dodaje novi element ispred prezimena
+Element* insertBefore(Element* head, char* targetSurname) {
+    if (head == NULL) {
+        printf("Lista je prazna.\n");
+        return head;
+    }
+
+    // Ako se tražena osoba nalazi odmah na početku liste
+    if (strcmp(head->person.surname, targetSurname) == 0) {
+        return addToBegg(head); // Pozivamo funkciju za dodavanje na početak
+    }
+
+    Element* p = head;
+    // Tražimo element čiji sljedeći ima traženo prezime
+    while (p->next != NULL && strcmp(p->next->person.surname, targetSurname) != 0) {
+        p = p->next;
+    }
+
+    if (p->next == NULL) {
+        printf("Osoba s prezimenom '%s' nije pronađena.\n", targetSurname);
+        return head;
+    }
+
+    // Alociranje novog čvora i unos podataka
+    Element* new = malloc(sizeof(Element));
+    if (!new) return head;
+
+    printf("Unesi podatke za novu osobu:\n");
+    printf("Ime: ");
+    scanf("%s", new->person.name);
+    printf("Prezime: ");
+    scanf("%s", new->person.surname);
+    printf("Godina rodenja: ");
+    scanf("%d", &new->person.year);
+
+    // Ubaci ispred pronađenog elementa
+    new->next = p->next;
+    p->next = new;
+
+    return head;
+}
+
+//Sortira listu po prezimenima osoba (Bubble sort)
+int sortList(Element* head) {
+    if (head == NULL || head->next == NULL)
+        return 0;
+
+    Element* p, * q, * temp;
+    int changed;
+
+    do {
+        changed = 0;
+        p = head;
+        q = NULL;
+
+        while (p->next != NULL) {
+            if (strcmp(p->person.surname, p->next->person.surname) > 0) {
+                temp = p->next;
+                p->next = temp->next;
+                temp->next = p;
+
+                if (q == NULL) {
+                    head = temp; // Ako mijenjamo prva dva elementa, mijenja se glava liste (u pozivu se vraća nova glava ako treba, ovdje radimo unutar funkcije preko pokazivača)
+                } else {
+                    q->next = temp;
+                }
+
+                q = temp;
+                changed = 1;
+            } else {
+                q = p;
+                p = p->next;
+            }
+        }
+    } while (changed);
+
+    return 0;
+}
+
+//Upisuje listu u datoteku
+int writeToFile(Element* head, char* filename) {
+    FILE* fp = fopen(filename, "w");
+    if (fp == NULL) {
+        printf("Greška pri otvaranju datoteke za pisanje!\n");
+        return -1;
+    }
+
+    Element* p = head;
+    while (p != NULL) {
+        fprintf(fp, "%s %s %d\n", p->person.name, p->person.surname, p->person.year);
+        p = p->next;
+    }
+
+    fclose(fp);
+    printf("Lista je uspješno spremljena u datoteku '%s'.\n", filename);
+    return 0;
+}
+
+// Čitanje liste iz datoteke
+Element* readFromFile(Element* head, char* filename) {
+    FILE* fp = fopen(filename, "r");
+    if (fp == NULL) {
+        printf("Greška pri otvaranju datoteke za čitanje!\n");
+        return NULL;
+    }
+
+    Person p;
+    // Čitamo red po red iz datoteke i ispravno ih dodajemo na kraj nove liste
+    while (fscanf(fp, "%s %s %d", p.name, p.surname, &p.year) == 3) {
+        head = addPersonToEnd(head, p);
+    }
+
+    fclose(fp);
+    printf("Lista je uspješno učitana iz datoteke '%s'.\n", filename);
+    return head;
+}
+
+int main() {
+    Element* head = NULL;                  // lista je prazna na početku
+
+    // automatski dodani članovi (iz 2. zadatka)
+    Person p1 = { "Julia", "Martinic", 2006 };
+    Person p2 = { "Ketrin", "Jercic", 2007 };
+    Person p3 = { "Eva", "Capkovic", 2008 };
+
+    head = addPerson(head, p1);            
+    head = addPerson(head, p2);            
+    head = addPerson(head, p3);            
+
+    printf("POČETNI ISPIS LISTE\n");
+    printList(head);
+
+//insertAfter
+    char target[LINE];
+    printf("\nDODAVANJE ISPRED/IZA\n");
+    printf("Unesi prezime osobe iza koje želiš dodati novu osobu: ");
+    scanf("%s", target);
+    head = insertAfter(head, target);
+
+    printf("\nIspis nakon insertAfter:\n");
+    printList(head);
+
+//insertBefore
+    printf("\nUnesi prezime osobe ispred koje želiš dodati novu osobu: ");
+    scanf("%s", target);
+    head = insertBefore(head, target);
+
+    printf("\nIspis nakon insertBefore:\n");
+    printList(head);
+
+//sortList
+    printf("\nSORTIRANJE LISTE PO PREZIMENIMA\n");
+    sortList(head);
+    printList(head);
+
+//writeToFile
+    printf("\nUPIS U DATOTEKU\n");
+    writeToFile(head, "osobe.txt");
+
+//readFromFile
+    printf("\nČITANJE IZ DATOTEKE (Nova lista)\n");
+    Element* headFromFile = NULL;
+    headFromFile = readFromFile(headFromFile, "osobe.txt");
+    printf("Ispis učitane liste iz datoteke:\n");
+    printList(headFromFile);
+
+    return 0;                          
+}
