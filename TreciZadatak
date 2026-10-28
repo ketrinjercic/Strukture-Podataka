@@ -260,7 +260,7 @@ Element* readFromFile(Element* head, char* filename) {
     Person p;
     // Čitamo red po red iz datoteke i ispravno ih dodajemo na kraj nove liste
     while (fscanf(fp, "%s %s %d", p.name, p.surname, &p.year) == 3) {
-        head = addPersonToEnd(head, p);
+        head = addPerson(head, p);
     }
 
     fclose(fp);
